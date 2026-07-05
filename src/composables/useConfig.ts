@@ -91,7 +91,6 @@ function normalizeConfig(raw: unknown): SiteConfig {
     logo: isString(input.logo) ? input.logo : defaults.logo,
     motto: isString(input.motto) ? input.motto : defaults.motto,
     copyright: isString(input.copyright) ? input.copyright : defaults.copyright,
-    username: isString(input.username) ? input.username : undefined,
     logo_gradient: isString(input.logo_gradient) ? input.logo_gradient : undefined,
     theme: parseTheme(input.theme),
     background: parseBackground(input.background),

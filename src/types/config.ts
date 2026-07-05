@@ -26,7 +26,6 @@ export interface SiteConfig {
   logo: string
   motto: string
   copyright: string
-  username?: string
   logo_gradient?: string
   theme?: ThemeConfig
   background?: BackgroundConfig

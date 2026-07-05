@@ -4,7 +4,6 @@ import { useConfig } from '@/composables/useConfig'
 import { useWallpaper } from '@/composables/useWallpaper'
 import type { WallpaperSource } from '@/composables/useWallpaper'
 import { useHitokoto } from '@/composables/useHitokoto'
-import { useGreeting } from '@/composables/useGreeting'
 import ClockDisplay from '@/components/ClockDisplay.vue'
 import SearchBar from '@/components/SearchBar.vue'
 import LinksGrid from '@/components/LinksGrid.vue'
@@ -22,9 +21,6 @@ const bgStyle = computed(() => {
 })
 
 const showMottoSkeleton = computed(() => mottoLoading.value && !motto.value)
-
-const username = computed(() => config.value?.username)
-const { greeting: greetingText } = useGreeting(username)
 
 watch(() => config.value?.background, (bg) => {
   if (!bg) return
@@ -68,7 +64,6 @@ onMounted(async () => {
     </div>
 
     <div class="hero">
-      <div v-if="greetingText" class="greeting">{{ greetingText }}</div>
       <div class="logo">
         <h1 :class="{ 'logo-gradient': config.logo_gradient }" :style="config.logo_gradient ? { backgroundImage: config.logo_gradient } : {}">{{ config.logo }}</h1>
       </div>
@@ -135,14 +130,6 @@ onMounted(async () => {
   flex-direction: column;
   align-items: center;
   padding: 46px 20px 30px;
-}
-.greeting {
-  font-size: 16px;
-  font-weight: 400;
-  color: var(--text-on-light);
-  margin-bottom: 4px;
-  text-align: center;
-  text-shadow: 0 1px 8px rgba(0,0,0,0.2);
 }
 .logo h1 {
   font-size: 96px;
