@@ -1,9 +1,8 @@
 <script setup lang="ts">
-defineProps<{ show?: boolean }>()
 </script>
 
 <template>
-  <div v-if="show !== false" class="loading-overlay">
+  <div class="loading-overlay">
     <div class="loading-dot" />
   </div>
 </template>

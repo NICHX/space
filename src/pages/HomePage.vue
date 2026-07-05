@@ -15,22 +15,15 @@ const { motto, fetchMotto } = useHitokoto()
 const bgStyle = ref('')
 
 const DEFAULT_BG = '#1a1a2e'
-const FALLBACK_BG = DEFAULT_BG
 
-async function setBgStyle() {
+function setBgStyle() {
   if (!config.value) return
-  if (config.value.random_cover || config.value.background?.type === 'random') {
-    const source = (config.value.background?.wallpaper_source || 'picsum') as WallpaperSource
-    const wallpaperUrl = await getWallpaperUrl(source, config.value.background?.custom_wallpaper_url)
-    bgStyle.value = `background-image: url('${wallpaperUrl}'); background-color: ${DEFAULT_BG}`
-  } else if (config.value.background?.type === 'solid' && config.value.background?.solid_color) {
-    bgStyle.value = `background-color: ${config.value.background.solid_color}`
-  } else {
-    bgStyle.value = `background-color: ${DEFAULT_BG}`
-  }
+  const source = (config.value.background?.wallpaper_source || 'picsum') as WallpaperSource
+  const wallpaperUrl = getWallpaperUrl(source, config.value.background?.custom_wallpaper_url)
+  bgStyle.value = `background-image: url('${wallpaperUrl}'); background-color: ${DEFAULT_BG}`
 }
 
-watch(() => config.value?.background, setBgStyle, { deep: true, immediate: true })
+watch(() => config.value?.background, setBgStyle, { deep: true })
 
 onMounted(async () => {
   await fetchConfig()
@@ -38,7 +31,7 @@ onMounted(async () => {
     document.title = config.value.html_title
 
     if (!config.value.motto) {
-      motto.value = await fetchMotto()
+      await fetchMotto()
     } else {
       motto.value = config.value.motto
     }
@@ -48,7 +41,7 @@ onMounted(async () => {
 
 <template>
   <div v-if="!loading && config" class="page" :style="bgStyle">
-    <div class="mask-layer" :style="{ opacity: config.theme?.mask_opacity ?? 0.7 }" />
+    <div class="mask-layer" />
     <div class="page-header">
       <div class="header-left">
         <ClockDisplay />
@@ -64,7 +57,7 @@ onMounted(async () => {
         v-if="config.search"
         :engines="config.search.engines"
         :default-engine="config.search.default_engine"
-        :placeholder="config.search.placeholder"
+        :engine-labels="config.search.engine_labels"
       />
     </div>
 
@@ -74,7 +67,7 @@ onMounted(async () => {
 
     <div class="copyright">{{ config.copyright }}</div>
   </div>
-  <LoadingSpinner v-else-if="loading" :show="loading" />
+  <LoadingSpinner v-else-if="loading" />
 </template>
 
 <style scoped>
@@ -86,7 +79,7 @@ onMounted(async () => {
   position: relative;
 }
 .mask-layer {
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
   width: 100%;
@@ -109,15 +102,13 @@ onMounted(async () => {
   gap: 14px;
 }
 .header-left .clock { text-align: left; }
-.header-left .clock-time { font-size: 28px; font-weight: 400; letter-spacing: 2px; line-height: 1.1; }
-.header-left .clock-date { font-size: 13px; margin-top: 1px; font-weight: 300; opacity: 0.7; }
 .hero {
   position: relative;
   z-index: 2;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 60px 20px 30px;
+  padding: 46px 20px 30px;
 }
 .logo h1 {
   font-size: 96px;
@@ -143,7 +134,7 @@ onMounted(async () => {
   padding: 0 20px 40px;
 }
 .copyright {
-  position: fixed;
+  position: absolute;
   bottom: 12px;
   right: 16px;
   z-index: 1;
@@ -158,8 +149,8 @@ onMounted(async () => {
     align-items: flex-start;
     gap: 8px;
   }
-  .hero { padding: 40px 16px 24px; }
-  .logo h1 { font-size: 36px; }
+  .hero { padding: 16px 16px 24px; }
+  .logo h1 { font-size: 68px; }
   .nav-area { padding: 0 12px 24px; }
 }
 </style>

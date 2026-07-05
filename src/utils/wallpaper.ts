@@ -1,10 +1,4 @@
-export type WallpaperSource = 'picsum' | 'bing' | 'custom'
-
-export const WALLPAPER_SOURCES = [
-  { key: 'picsum' as WallpaperSource, label: 'Picsum', url: '' },
-  { key: 'bing' as WallpaperSource, label: 'Bing 每日', url: '' },
-  { key: 'custom' as WallpaperSource, label: '自定义', url: '' },
-]
+export type WallpaperSource = 'picsum' | 'custom'
 
 /* ---- rate limiter ---- */
 const requestLog = new Map<string, number[]>()
@@ -36,37 +30,7 @@ function picsumFallback(): string {
   return getPicsumUrl()
 }
 
-/* ---- Bing ---- */
-let bingCache: { url: string; expiry: number } | null = null
-
-const BING_API = '/bing-api?format=js&idx=0&n=1'
-
-const BING_FETCHERS = [
-  async () => { const r = await fetch(BING_API, { signal: AbortSignal.timeout(4000) }); return r.ok ? r.json() : null },
-  async () => { const r = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent('https://www.bing.com/HPImageArchive.aspx?format=js&idx=0&n=1')}`, { signal: AbortSignal.timeout(6000) }); return r.ok ? r.json() : null },
-  async () => { const r = await fetch(`https://corsproxy.io/?url=${encodeURIComponent('https://www.bing.com/HPImageArchive.aspx?format=js&idx=0&n=1')}`, { signal: AbortSignal.timeout(6000) }); return r.ok ? r.json() : null },
-]
-
-async function fetchBingWallpaper(): Promise<string> {
-  if (bingCache && Date.now() < bingCache.expiry) {
-    return bingCache.url
-  }
-  for (const fetcher of BING_FETCHERS) {
-    try {
-      const data = await fetcher()
-      if (!data) continue
-      const path = data?.images?.[0]?.url
-      if (path) {
-        const url = `https://www.bing.com${path}`
-        bingCache = { url, expiry: Date.now() + 3600_000 }
-        return url
-      }
-    } catch {}
-  }
-  return getPicsumUrl()
-}
-
-export async function getWallpaperUrl(source: WallpaperSource, customUrl?: string): Promise<string> {
+export function getWallpaperUrl(source: WallpaperSource, customUrl?: string): string {
   switch (source) {
     case 'picsum': {
       if (!rateLimit('picsum', 10, 60_000)) {
@@ -79,11 +43,9 @@ export async function getWallpaperUrl(source: WallpaperSource, customUrl?: strin
       }
       return url
     }
-    case 'bing':
-      return await fetchBingWallpaper()
     case 'custom':
       return customUrl || getPicsumUrl()
     default:
-      return getPicsumUrl()
+      return picsumFallback()
   }
 }

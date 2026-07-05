@@ -11,29 +11,26 @@ interface HitokotoCache {
 export function useHitokoto() {
   const motto = ref('')
 
-  async function fetchMotto(): Promise<string> {
-    // try cache first
+  async function fetchMotto(): Promise<void> {
     const cached = loadCache()
-    if (cached) return cached
+    if (cached) {
+      motto.value = cached
+      return
+    }
 
-    // rate limited fetch
     try {
       const resp = await fetch('https://v1.hitokoto.cn')
       if (!resp.ok) throw new Error(`HTTP ${resp.status}`)
       const data = await resp.json()
-      const text = data.hitokoto
-        ? (data.hitokoto.length > 20
-          ? `「${data.hitokoto.substring(0, 20)}...」`
-          : `「${data.hitokoto}」`)
-        : ''
+      const text = data.hitokoto ? `「${data.hitokoto}」` : ''
 
       if (text) {
         saveCache(text)
-        return text
+        motto.value = text
       }
-    } catch {}
-
-    return ''
+    } catch (e) {
+      console.warn('[Hitokoto] fetch failed:', e)
+    }
   }
 
   function loadCache(): string | null {
@@ -45,7 +42,9 @@ export function useHitokoto() {
         return cache.text
       }
       localStorage.removeItem(HITOKOTO_KEY)
-    } catch {}
+    } catch {
+      // localStorage may be unavailable in private browsing
+    }
     return null
   }
 
@@ -53,7 +52,9 @@ export function useHitokoto() {
     try {
       const cache: HitokotoCache = { text, timestamp: Date.now() }
       localStorage.setItem(HITOKOTO_KEY, JSON.stringify(cache))
-    } catch {}
+    } catch {
+      // localStorage may be unavailable in private browsing
+    }
   }
 
   return { motto, fetchMotto }

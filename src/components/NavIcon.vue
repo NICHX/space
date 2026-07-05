@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 
 const props = defineProps<{
   slug: string
@@ -8,6 +8,10 @@ const props = defineProps<{
 }>()
 
 const imgError = ref(false)
+
+watch([() => props.slug, () => props.source], () => {
+  imgError.value = false
+})
 
 const iconSrc = computed(() => {
   if (props.source === 'simple') {
@@ -21,9 +25,8 @@ const iconSrc = computed(() => {
 
 const imgSize = computed(() => props.size || 22)
 
-function onError(e: Event) {
+function onError() {
   imgError.value = true
-  ;(e.target as HTMLImageElement).style.display = 'none'
 }
 </script>
 

@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { Search, ChevronDown } from 'lucide-vue-next'
 import { useClickAway } from '@/composables/useClickAway'
 
 const props = defineProps<{
   engines: Record<string, string>
   defaultEngine: string
-  placeholder: string
+  engineLabels?: Record<string, string>
 }>()
 
 const showDropdown = ref(false)
@@ -14,16 +14,28 @@ const currentEngine = ref(props.defaultEngine || 'google')
 const query = ref('')
 const searchRef = ref<HTMLElement | null>(null)
 
+watch(() => props.defaultEngine, (val) => {
+  currentEngine.value = val || 'google'
+})
+
 useClickAway(searchRef, () => { showDropdown.value = false })
 
 const engineKeys = computed(() => Object.keys(props.engines || {}))
-const engineLabels: Record<string, string> = {
-  google: 'Google', bing: 'Bing', baidu: '百度', duckduckgo: 'DuckDuckGo',
+
+function engineLabel(key: string): string {
+  if (props.engineLabels?.[key]) return props.engineLabels[key]
+  const baseUrl = props.engines?.[key]
+  if (!baseUrl) return key
+  try {
+    const host = new URL(baseUrl).hostname.replace(/^www\./, '')
+    const parts = host.split('.')
+    return parts.length >= 2 ? parts[0] : host
+  } catch {
+    return key
+  }
 }
-const engineLabel = computed(() => engineLabels[currentEngine.value] || currentEngine.value)
-function engineLabelOf(key: string): string {
-  return engineLabels[key] || key
-}
+
+const currentEngineLabel = computed(() => engineLabel(currentEngine.value))
 
 function selectEngine(key: string) {
   currentEngine.value = key
@@ -47,25 +59,27 @@ function handleKeydown(e: KeyboardEvent) {
   <div ref="searchRef" class="search-wrapper">
     <div class="search-box">
       <div class="engine-selector" @click="showDropdown = !showDropdown">
-        <span class="engine-label">{{ engineLabel }}</span>
-        <ChevronDown :size="12" />
-        <div v-if="showDropdown" class="engine-dropdown" @click.stop>
-          <div
-            v-for="key in engineKeys"
-            :key="key"
-            class="engine-option"
-            :class="{ active: key === currentEngine }"
-            @click="selectEngine(key)"
-          >
-            {{ engineLabelOf(key) }}
+        <span class="engine-label">{{ currentEngineLabel }}</span>
+        <ChevronDown :size="12" class="chevron" :class="{ open: showDropdown }" />
+        <Transition name="drop">
+          <div v-if="showDropdown" class="engine-dropdown" @click.stop>
+            <div
+              v-for="key in engineKeys"
+              :key="key"
+              class="engine-option"
+              :class="{ active: key === currentEngine }"
+              @click="selectEngine(key)"
+            >
+              {{ engineLabel(key) }}
+            </div>
           </div>
-        </div>
+        </Transition>
       </div>
       <div class="search-divider" />
       <input
         v-model="query"
         class="search-input"
-        :placeholder="placeholder"
+        placeholder="搜索..."
         @keydown="handleKeydown"
       />
       <button class="search-btn" @click="doSearch">
@@ -82,6 +96,8 @@ function handleKeydown(e: KeyboardEvent) {
   width: 100%;
   margin: 0 auto;
   padding: 0 20px 24px;
+  position: relative;
+  z-index: 1;
 }
 .search-box {
   display: flex;
@@ -89,11 +105,9 @@ function handleKeydown(e: KeyboardEvent) {
   width: 600px;
   max-width: 100%;
   background: var(--search-bg);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--search-border);
   border-radius: 28px;
-  padding: 2px 4px 2px 18px;
+  padding: 0 4px 0 14px;
   transition: all 0.3s;
 }
 .search-box:focus-within {
@@ -104,7 +118,7 @@ function handleKeydown(e: KeyboardEvent) {
 .engine-selector {
   display: flex;
   align-items: center;
-  gap: 3px;
+  gap: 4px;
   cursor: pointer;
   color: var(--search-engine-label);
   font-size: 12.5px;
@@ -113,34 +127,57 @@ function handleKeydown(e: KeyboardEvent) {
   user-select: none;
   flex-shrink: 0;
 }
+.chevron {
+  transition: transform 0.2s;
+}
+.chevron.open {
+  transform: rotate(180deg);
+}
 .engine-label {
   font-weight: 500;
 }
 .engine-dropdown {
   position: absolute;
   top: 100%;
-  left: 0;
-  margin-top: 8px;
+  left: -8px;
+  margin-top: 6px;
   background: var(--search-dropdown-bg);
-  backdrop-filter: blur(12px);
   border: 1px solid var(--search-dropdown-border);
   border-radius: 10px;
-  padding: 4px;
+  padding: 6px;
   z-index: 9999;
-  min-width: 120px;
+  min-width: 130px;
 }
 .engine-option {
-  padding: 7px 14px;
+  padding: 8px 12px;
   border-radius: 6px;
   cursor: pointer;
   color: var(--search-dropdown-text);
   font-size: 13px;
-  transition: all 0.15s;
+  transition: background 0.15s;
+}
+.engine-option + .engine-option {
+  margin-top: 2px;
 }
 .engine-option:hover,
 .engine-option.active {
   background: var(--search-dropdown-hover);
   color: var(--text-primary);
+}
+
+/* drop transition */
+.drop-enter-active {
+  transition: opacity 0.15s, transform 0.15s;
+}
+.drop-leave-active {
+  transition: opacity 0.1s;
+}
+.drop-enter-from {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+.drop-leave-to {
+  opacity: 0;
 }
 .search-divider {
   width: 1px;

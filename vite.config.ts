@@ -12,13 +12,5 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
-  server: {
-    proxy: {
-      '/bing-api': {
-        target: 'https://www.bing.com',
-        changeOrigin: true,
-        rewrite: (p) => p.replace(/^\/bing-api/, '/HPImageArchive.aspx'),
-      },
-    },
-  },
+  server: {},
 })

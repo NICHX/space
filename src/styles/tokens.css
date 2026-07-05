@@ -18,7 +18,7 @@
 
   /* ---- 遮罩 ---- */
   --overlay-bg: rgba(0, 0, 0, 0.45);
-  --mask-layer: #666;
+  --mask-layer: linear-gradient(180deg, rgba(26,26,26,0.15) 0%, rgba(26,26,26,0.88) 100%);
 
   /* ---- 文字 ---- */
   --text-primary: #fff;
