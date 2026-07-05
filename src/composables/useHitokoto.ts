@@ -10,6 +10,7 @@ interface HitokotoCache {
 
 export function useHitokoto() {
   const motto = ref('')
+  const loading = ref(false)
 
   async function fetchMotto(): Promise<void> {
     const cached = loadCache()
@@ -17,6 +18,8 @@ export function useHitokoto() {
       motto.value = cached
       return
     }
+
+    loading.value = true
 
     try {
       const resp = await fetch('https://v1.hitokoto.cn')
@@ -31,6 +34,7 @@ export function useHitokoto() {
     } catch (e) {
       console.warn('[Hitokoto] fetch failed:', e)
     }
+    loading.value = false
   }
 
   function loadCache(): string | null {
@@ -57,5 +61,5 @@ export function useHitokoto() {
     }
   }
 
-  return { motto, fetchMotto }
+  return { motto, loading, fetchMotto }
 }

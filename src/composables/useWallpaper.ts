@@ -1,7 +1,10 @@
+import { ref } from 'vue'
+
 export type WallpaperSource = 'picsum' | 'custom'
 
-/* ---- rate limiter ---- */
 const requestLog = new Map<string, number[]>()
+const PICSUM_CACHE: string[] = []
+let picsumCounter = 0
 
 function rateLimit(key: string, maxRequests: number, windowMs: number): boolean {
   const now = Date.now()
@@ -13,10 +16,6 @@ function rateLimit(key: string, maxRequests: number, windowMs: number): boolean 
   requestLog.set(key, recent)
   return true
 }
-
-/* ---- Picsum cache + rate limit ---- */
-const PICSUM_CACHE: string[] = []
-let picsumCounter = 0
 
 function getPicsumUrl(): string {
   picsumCounter++
@@ -30,17 +29,13 @@ function picsumFallback(): string {
   return getPicsumUrl()
 }
 
-export function getWallpaperUrl(source: WallpaperSource, customUrl?: string): string {
+function resolveUrl(source: WallpaperSource, customUrl?: string): string {
   switch (source) {
     case 'picsum': {
-      if (!rateLimit('picsum', 10, 60_000)) {
-        return picsumFallback()
-      }
+      if (!rateLimit('picsum', 10, 60_000)) return picsumFallback()
       const url = getPicsumUrl()
       PICSUM_CACHE.push(url)
-      if (PICSUM_CACHE.length > 20) {
-        PICSUM_CACHE.shift()
-      }
+      if (PICSUM_CACHE.length > 20) PICSUM_CACHE.shift()
       return url
     }
     case 'custom':
@@ -48,4 +43,24 @@ export function getWallpaperUrl(source: WallpaperSource, customUrl?: string): st
     default:
       return picsumFallback()
   }
+}
+
+export function useWallpaper() {
+  const url = ref('')
+  const loaded = ref(false)
+  const error = ref(false)
+
+  function load(source: WallpaperSource, customUrl?: string) {
+    loaded.value = false
+    error.value = false
+    const wallpaperUrl = resolveUrl(source, customUrl)
+    url.value = wallpaperUrl
+
+    const img = new Image()
+    img.onload = () => { loaded.value = true }
+    img.onerror = () => { error.value = true; loaded.value = true }
+    img.src = wallpaperUrl
+  }
+
+  return { url, loaded, error, load }
 }

@@ -9,11 +9,17 @@ html_title: NICHX导航页
 # Logo 文字
 logo: Hi!
 
+# 用户名（可选，设置后在问候语中显示）
+username: NICHX
+
 # 座右铭（留空会自动获取一言）
 motto:
 
 # 底部版权信息
 copyright: ©2026 - 导航页 | NICHX | 陕ICP备16019327号
+
+# Logo 渐变色（可选，CSS 渐变值，如 "linear-gradient(135deg, #667eea, #764ba2)"）
+# logo_gradient:
 
 # ============================
 # 主题配置

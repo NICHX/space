@@ -265,7 +265,7 @@ function resolveIcon(icon: string | undefined): { slug: string; source: 'simple'
 /* ---- entrance animation ---- */
 .cube-enter {
   animation: cube-fade-up 0.4s ease-out backwards;
-  animation-delay: calc(var(--i) * 40ms);
+  animation-delay: calc(min(var(--i), 8) * 50ms);
 }
 @keyframes cube-fade-up {
   from {
