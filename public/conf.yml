@@ -1,0 +1,105 @@
+# ============================
+# 导航页完整配置
+# 修改此文件后刷新页面即可生效，无需重新构建
+# ============================
+
+# 开启随机壁纸（每次刷新更换）
+random_cover: true
+
+# 网站标题（浏览器标签栏）
+html_title: NICHX导航页
+
+# Logo 文字
+logo: Hi!
+
+# 座右铭（留空会自动获取一言）
+motto:
+
+# 底部版权信息
+copyright: ©2026 - 导航页 | NICHX | 陕ICP备16019327号
+
+# ============================
+# 主题配置
+# ============================
+theme:
+  # 遮罩透明度 0-1
+  mask_opacity: 0.7
+  # 导航格子列数 2-8
+  grid_columns: 5
+  # 进入动画
+  animation: true
+  # 悬停效果（up/scale/glow/rotate/shine/lift/pulse/random/carousel）
+  # carousel：悬停时轮流展示所有效果
+  hover_effect: random
+  # 紧凑模式
+  compact: false
+  # 导航方块背景
+  nav_bg: false
+  # 图标大小 px
+  icon_size: 24
+
+# ============================
+# 背景配置
+# ============================
+background:
+  # 类型：random（随机壁纸）/ solid（纯色）
+  type: random
+  # 纯色值（type 为 solid 时生效，默认 #1a1a2e）
+  solid_color: "#1a1a2e"
+  # 壁纸来源：picsum / bing / custom
+  wallpaper_source: picsum
+  # 自定义壁纸 URL（wallpaper_source 为 custom 时生效）
+  custom_wallpaper_url:
+
+# ============================
+# 搜索配置
+# ============================
+search:
+  placeholder: "搜索..."
+  default_engine: baidu
+  engines:
+    google: "https://www.google.com/search?q="
+    bing: "https://www.bing.com/search?q="
+    baidu: "https://www.baidu.com/s?wd="
+    duckduckgo: "https://duckduckgo.com/?q="
+
+# ============================
+# 导航链接
+# ============================
+links:
+  - text: 哔哩哔哩
+    link: https://www.bilibili.com/
+    icon: simple:bilibili
+  - text: 值得买
+    link: https://www.smzdm.com/
+    icon: lucide:shopping-cart
+  - text: 云盘
+    link: https://yun.nichx.cn:5244
+    icon: lucide:cloud
+  - text: BLOG
+    link: https://blog.nichx.cn/
+    icon: lucide:pen-tool
+  - text: EMBY
+    link: https://v.nichx.cn:8821/
+    icon: lucide:film
+  - text: Photos
+    link: https://photo.nichx.cn:5045
+    icon: lucide:image
+  - text: 下载
+    link: https://dl.nichx.cn:8084/
+    icon: lucide:download
+  - text: UNRAID
+    link: https://nas.nichx.cn:8443
+    icon: lucide:server
+  - text: 字幕库
+    link: https://srtku.com/
+    icon: lucide:languages
+  - text: PT
+    link: https://www.pttime.org/
+    icon: lucide:flag
+  - text: 服务监控
+    link: https://status.nichx.cn/
+    icon: lucide:gauge
+  - text: DSM
+    link: https://dsm.nichx.cn:5001
+    icon: lucide:hard-drive
