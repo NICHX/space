@@ -4,7 +4,7 @@ import path from 'path'
 
 export default defineConfig({
   build: {
-    sourcemap: 'hidden',
+    sourcemap: false,
   },
   plugins: [vue()],
   resolve: {

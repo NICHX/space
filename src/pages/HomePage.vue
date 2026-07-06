@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useConfig } from '@/composables/useConfig'
 import { useWallpaper } from '@/composables/useWallpaper'
 import type { WallpaperSource } from '@/composables/useWallpaper'
@@ -11,7 +11,7 @@ import LoadingSpinner from '@/components/LoadingSpinner.vue'
 
 const { config, loading, fetchConfig } = useConfig()
 const { motto, loading: mottoLoading, fetchMotto } = useHitokoto()
-const { url: wallpaperUrl, loaded: bgLoaded, load: loadWallpaper } = useWallpaper()
+const { url: wallpaperUrl, load: loadWallpaper } = useWallpaper()
 
 const DEFAULT_BG = '#1a1a2e'
 
@@ -22,40 +22,32 @@ const bgStyle = computed(() => {
 
 const showMottoSkeleton = computed(() => mottoLoading.value && !motto.value)
 
-watch(() => config.value?.background, (bg) => {
-  if (!bg) return
-  loadWallpaper(
-    (bg.wallpaper_source || 'picsum') as WallpaperSource,
-    bg.custom_wallpaper_url
-  )
-}, { deep: true })
-
-function loadBg() {
-  if (!config.value?.background) return
-  loadWallpaper(
-    (config.value.background.wallpaper_source || 'picsum') as WallpaperSource,
-    config.value.background.custom_wallpaper_url
-  )
-}
+const pageReady = computed(() => !loading.value && !!config.value)
+const safeConfig = computed(() => config.value!)
 
 onMounted(async () => {
   await fetchConfig()
-  if (config.value) {
-    document.title = config.value.html_title
+  if (!config.value) return
 
-    if (!config.value.motto) {
-      await fetchMotto()
-    } else {
-      motto.value = config.value.motto
-    }
+  document.title = config.value.html_title
 
-    loadBg()
-  }
+  const mottoTask = config.value.motto
+    ? (motto.value = config.value.motto, Promise.resolve())
+    : fetchMotto()
+
+  const bgTask = config.value.background
+    ? loadWallpaper(
+        (config.value.background.wallpaper_source || 'picsum') as WallpaperSource,
+        config.value.background.custom_wallpaper_url,
+      )
+    : Promise.resolve()
+
+  await Promise.all([mottoTask, bgTask])
 })
 </script>
 
 <template>
-  <div v-if="!loading && config" class="page" :class="{ visible: bgLoaded }" :style="bgStyle">
+  <div v-if="pageReady" class="page page-enter" :style="bgStyle">
     <div class="mask-layer" />
     <div class="page-header">
       <div class="header-left">
@@ -65,25 +57,25 @@ onMounted(async () => {
 
     <div class="hero">
       <div class="logo">
-        <h1 :class="{ 'logo-gradient': config.logo_gradient }" :style="config.logo_gradient ? { backgroundImage: config.logo_gradient } : {}">{{ config.logo }}</h1>
+        <h1 :class="{ 'logo-gradient': safeConfig.logo_gradient }" :style="safeConfig.logo_gradient ? { backgroundImage: safeConfig.logo_gradient } : {}">{{ safeConfig.logo }}</h1>
       </div>
       <div v-if="showMottoSkeleton" class="motto-skeleton" />
       <div v-else-if="motto" class="motto">{{ motto }}</div>
       <SearchBar
-        v-if="config.search"
-        :engines="config.search.engines"
-        :default-engine="config.search.default_engine"
-        :engine-labels="config.search.engine_labels"
+        v-if="safeConfig.search"
+        :engines="safeConfig.search.engines"
+        :default-engine="safeConfig.search.default_engine"
+        :engine-labels="safeConfig.search.engine_labels"
       />
     </div>
 
     <div class="nav-area">
-      <LinksGrid :config="config" />
+      <LinksGrid :config="safeConfig" />
     </div>
 
-    <div class="copyright">{{ config.copyright }}</div>
+    <div class="copyright">{{ safeConfig.copyright }}</div>
   </div>
-  <LoadingSpinner v-else-if="loading" />
+  <LoadingSpinner v-else />
 </template>
 
 <style scoped>
@@ -93,11 +85,19 @@ onMounted(async () => {
   background-position: center;
   background-repeat: no-repeat;
   position: relative;
-  opacity: 0;
-  transition: opacity 0.6s ease;
 }
-.page.visible {
-  opacity: 1;
+.page-enter {
+  animation: page-fade-in 0.7s cubic-bezier(0.19, 1, 0.22, 1);
+}
+@keyframes page-fade-in {
+  from {
+    opacity: 0;
+    transform: scale(1.04);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 .mask-layer {
   position: absolute;

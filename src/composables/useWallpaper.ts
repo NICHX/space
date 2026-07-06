@@ -39,7 +39,7 @@ function resolveUrl(source: WallpaperSource, customUrl?: string): string {
       return url
     }
     case 'custom':
-      return customUrl || getPicsumUrl()
+      return customUrl ? customUrl : picsumFallback()
     default:
       return picsumFallback()
   }
@@ -57,8 +57,13 @@ export function useWallpaper() {
     url.value = wallpaperUrl
 
     const img = new Image()
-    img.onload = () => { loaded.value = true }
-    img.onerror = () => { error.value = true; loaded.value = true }
+    img.onload = () => {
+      loaded.value = true
+    }
+    img.onerror = () => {
+      error.value = true
+      loaded.value = true
+    }
     img.src = wallpaperUrl
   }
 

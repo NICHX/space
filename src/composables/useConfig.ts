@@ -44,7 +44,9 @@ function isHoverEffect(val: unknown): val is ThemeConfig['hover_effect'] {
 function parseTheme(raw: unknown): ThemeConfig {
   if (!isRecord(raw)) return { ...defaults.theme! }
   return {
-    grid_columns: typeof raw.grid_columns === 'number' ? raw.grid_columns : defaults.theme!.grid_columns,
+    grid_columns: typeof raw.grid_columns === 'number'
+      ? Math.min(8, Math.max(2, Math.floor(raw.grid_columns)))
+      : defaults.theme!.grid_columns,
     hover_effect: isHoverEffect(raw.hover_effect) ? raw.hover_effect : defaults.theme!.hover_effect,
     nav_bg: typeof raw.nav_bg === 'boolean' ? raw.nav_bg : defaults.theme!.nav_bg,
   }
@@ -64,13 +66,19 @@ function parseSearch(raw: unknown): SearchConfig {
   let engines: Record<string, string>
 
   if (isRecord(enginesRaw)) {
-    engines = { ...defaults.search!.engines, ...enginesRaw as Record<string, string> }
+    const valid = Object.fromEntries(
+      Object.entries(enginesRaw).filter(([, v]) => isString(v))
+    ) as Record<string, string>
+    engines = { ...defaults.search!.engines, ...valid }
   } else {
     engines = { ...defaults.search!.engines }
   }
 
+  const rawDefault = isString(raw.default_engine) ? raw.default_engine : defaults.search!.default_engine
+  const defaultEngine = rawDefault in engines ? rawDefault : Object.keys(engines)[0]
+
   return {
-    default_engine: isString(raw.default_engine) ? raw.default_engine : defaults.search!.default_engine,
+    default_engine: defaultEngine,
     engines,
     engine_labels: isRecord(raw.engine_labels) ? raw.engine_labels as Record<string, string> : undefined,
   }
@@ -107,7 +115,7 @@ export function useConfig() {
     loading.value = true
     let yamlConfig: unknown = {}
     try {
-      const res = await fetch('./conf.yml')
+      const res = await fetch(`${import.meta.env.BASE_URL}conf.yml`)
       const text = await res.text()
       const parsed = yamlLoad(text)
       if (parsed && typeof parsed === 'object') yamlConfig = parsed

@@ -18,7 +18,7 @@
   align-items: center;
   justify-content: center;
   z-index: 999;
-  pointer-events: none;
+  background: #111;
 }
 .loading-dot {
   width: 40px;
